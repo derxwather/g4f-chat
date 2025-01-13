@@ -1,86 +1,71 @@
-// Элементы интерфейса
-const msgs = document.getElementById('msgs');
-const txt = document.getElementById('msg');
-const img = document.getElementById('txt');
-const pic = document.getElementById('pic');
+let чат = document.getElementById('msgs')
+let текст = document.getElementById('msg')
+let рисунок = document.getElementById('txt')
+let картинка = document.getElementById('pic')
 
-// Добавляем сообщение в чат
-function add(t, u) {
-    const m = document.createElement('div');
-    m.className = `msg ${u ? 'user' : 'bot'}`;
-    m.textContent = t;
-    msgs.appendChild(m);
-    msgs.scrollTop = msgs.scrollHeight;
+function добавить(текст, отЮзера) {
+    let блок = document.createElement('div')
+    блок.className = отЮзера ? 'msg user' : 'msg bot'
+    блок.textContent = текст
+    чат.appendChild(блок)
+    чат.scrollTop = чат.scrollHeight
 }
 
-// Отправляем сообщение
-async function send() {
-    const t = txt.value.trim();
-    if (!t) return;
-
-    // Очищаем ввод
-    txt.value = '';
+async function отправить() {
+    let сообщение = текст.value.trim()
+    if (!сообщение) return
     
-    // Показываем сообщение пользователя
-    add(t, true);
+    текст.value = ''
+    добавить(сообщение, true)
     
     try {
-        // Отправляем запрос
-        const r = await fetch('/api/chat', {
+        let ответ = await fetch('/api/chat', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: t})
-        });
+            body: JSON.stringify({text: сообщение})
+        })
         
-        if (!r.ok) throw 'err';
+        if (!ответ.ok) throw 'не получилось('
         
-        // Получаем ответ
-        const d = await r.json();
-        add(d.response);
-    } catch (e) {
-        console.error(e);
-        add('ошибка 😢');
+        let данные = await ответ.json()
+        добавить(данные.response)
+    } catch (е) {
+        console.log('упс:', е)
+        добавить('что-то пошло не так 😢')
     }
 }
 
-// Генерируем картинку
-async function gen() {
-    const t = img.value.trim();
-    if (!t) return;
+async function нарисовать() {
+    let описание = рисунок.value.trim()
+    if (!описание) return
     
-    // Очищаем ввод
-    img.value = '';
-    
-    // Показываем статус
-    pic.style.display = 'none';
-    add('делаю...', true);
+    рисунок.value = ''
+    картинка.style.display = 'none'
+    добавить('щас нарисую...', true)
     
     try {
-        // Отправляем запрос
-        const r = await fetch('/api/generate-image', {
+        let ответ = await fetch('/api/generate-image', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: t})
-        });
+            body: JSON.stringify({text: описание})
+        })
         
-        if (!r.ok) throw 'err';
+        if (!ответ.ok) throw 'не вышло('
         
-        // Показываем картинку
-        const d = await r.json();
-        pic.src = d.image_url;
-        pic.style.display = 'block';
-        add('готово ��');
-    } catch (e) {
-        console.error(e);
-        add('ошибка 😢');
+        let данные = await ответ.json()
+        картинка.src = данные.image_url
+        картинка.style.display = 'block'
+        добавить('держи! 🎨')
+    } catch (е) {
+        console.log('упс:', е)
+        добавить('не получилось нарисовать 😢')
     }
 }
 
-// Обработка Enter
-txt.addEventListener('keyup', e => {
-    if (e.key === 'Enter') send();
-});
+текст.addEventListener('keyup', (е) => {
+    if (е.key === 'Enter') отправить()
+})
 
-img.addEventListener('keyup', e => {
-    if (e.key === 'Enter') gen();
-}); 
+рисунок.addEventListener('keyup', (е) => {
+    if (е.key === 'Enter') нарисовать()
+}) 
