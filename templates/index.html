@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>чат</title>
+    <title>Болталка с картинками</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="main">
-        <div class="left">
-            <h2>чат</h2>
-            <div id="msgs" class="msgs"></div>
-            <div class="input">
-                <input type="text" id="msg" placeholder="сообщение...">
-                <button onclick="send()">отправить</button>
+    <div class="wrapper">
+        <div class="chat-block">
+            <h2>Болталка</h2>
+            <div id="msgs" class="messages"></div>
+            <div class="controls">
+                <input type="text" id="msg" placeholder="Напиши что-нибудь...">
+                <button onclick="send()">➤</button>
             </div>
         </div>
 
-        <div class="right">
-            <h2>картинки</h2>
-            <div class="input">
-                <input type="text" id="txt" placeholder="описание...">
-                <button onclick="gen()">создать</button>
+        <div class="pics-block">
+            <h2>Рисовалка</h2> 
+            <div class="controls">
+                <input type="text" id="txt" placeholder="Опиши картинку...">
+                <button onclick="gen()">✨</button>
             </div>
-            <div id="img">
+            <div id="img" class="result">
                 <img id="pic" style="display: none;">
             </div>
         </div>

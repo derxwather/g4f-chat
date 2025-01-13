@@ -1,5 +1,5 @@
 import g4f
-from fastapi import *
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -10,8 +10,15 @@ import asyncio
 import functools
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+origins = ["*"]
+app.add_middleware(CORSMiddleware, 
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 class msg(BaseModel):
     text: str
@@ -19,54 +26,60 @@ class msg(BaseModel):
 class img(BaseModel):
     text: str
 
-def run_async(f):
-    @functools.wraps(f)
-    async def wrap(*args, **kwargs):
-        return await asyncio.get_running_loop().run_in_executor(None, functools.partial(f, *args, **kwargs))
-    return wrap
+def make_async(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, lambda: func(*args, **kwargs))
+    return wrapper
 
 @app.get("/")
-async def main():
+async def home():
     return FileResponse("templates/index.html")
 
 @app.post("/api/chat")
-async def chat(m: msg):
+async def chat(msg: msg):
     try:
-        @run_async
-        def get_answer():
+        @make_async
+        def ask_gpt():
             return g4f.ChatCompletion.create(
                 model="gpt-4",
-                messages=[{"role": "user", "content": m.text}],
-                provider=g4f.Provider.ChatGptEs,
+                messages=[{"role": "user", "content": msg.text}],
+                provider=g4f.Provider.ChatGptEs
             )
         
-        res = await get_answer()
-        if not res:
-            raise Exception("пусто")
-        return {"response": res}
-    except:
-        err = traceback.format_exc()
-        print(f"ошибка: {err}")
-        raise HTTPException(500, "ошибка")
+        answer = await ask_gpt()
+        if not answer:
+            print("Пустой ответ от GPT")
+            raise Exception("нет ответа")
+            
+        return {"response": answer}
+        
+    except Exception as e:
+        print(f"Что-то сломалось: {str(e)}")
+        raise HTTPException(500, "все упало(")
 
-@app.post("/api/generate-image")
-async def img_gen(m: img):
+@app.post("/api/generate-image") 
+async def make_image(req: img):
     try:
-        @run_async
-        def get_img():
+        @make_async
+        def get_image():
             return g4f.ChatCompletion.create(
                 model="prodia",
-                messages=[{"role": "user", "content": m.text}],
+                messages=[{"role": "user", "content": req.text}]
             )
         
-        url = await get_img()
-        if not url:
-            raise Exception("пусто")
-        return {"image_url": url}
-    except:
-        err = traceback.format_exc()
-        print(f"ошибка: {err}")
-        raise HTTPException(500, "ошибка")
+        img_url = await get_image()
+        if not img_url:
+            print("Картинка не сгенерилась")
+            raise Exception("картинка не получилась")
+            
+        return {"image_url": img_url}
+        
+    except Exception as e:
+        print(f"Ошибка генерации: {str(e)}")
+        raise HTTPException(500, "не смог сделать картинку(")
 
 if __name__ == "__main__":
+    print("Запускаю сервер...")
     uvicorn.run("app:app", host="localhost", port=8080, reload=True) 
