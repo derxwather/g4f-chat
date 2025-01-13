@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>чат</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="main">
+        <div class="left">
+            <h2>чат</h2>
+            <div id="msgs" class="msgs"></div>
+            <div class="input">
+                <input type="text" id="msg" placeholder="сообщение...">
+                <button onclick="send()">отправить</button>
+            </div>
+        </div>
+
+        <div class="right">
+            <h2>картинки</h2>
+            <div class="input">
+                <input type="text" id="txt" placeholder="описание...">
+                <button onclick="gen()">создать</button>
+            </div>
+            <div id="img">
+                <img id="pic" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 
